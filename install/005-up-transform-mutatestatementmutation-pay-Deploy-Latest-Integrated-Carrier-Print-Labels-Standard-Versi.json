@@ -1,0 +1,19 @@
+{
+  "action": {
+    "up": {
+      "transform": "$mutate({\"statement\":'mutation ($payload:[DeployDataFlowVersionPayloadInput!]!){deployDataFlowVersion(payload:$payload){id}}', \"variables\":{\"payload\":[$.{\"dataFlowVersionId\":id}]}})",
+      "bindings": {}
+    },
+    "down": {
+      "transform": "$",
+      "bindings": {}
+    }
+  },
+  "payload": [
+    {
+      "id": "cknjdqsxb003y0j8rb106f6ek",
+      "dataFlowId": "integratedCarrierPrintLabelsStandard"
+    }
+  ],
+  "description": "Deploy Latest Integrated Carrier Print Labels Standard Version (6/7)"
+}

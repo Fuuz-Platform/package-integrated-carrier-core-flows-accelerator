@@ -1,0 +1,19 @@
+{
+  "action": {
+    "up": {
+      "transform": "$mutate({\"statement\":'mutation ($payload:[DeployDataFlowVersionPayloadInput!]!){deployDataFlowVersion(payload:$payload){id}}', \"variables\":{\"payload\":[$.{\"dataFlowVersionId\":id}]}})",
+      "bindings": {}
+    },
+    "down": {
+      "transform": "$",
+      "bindings": {}
+    }
+  },
+  "payload": [
+    {
+      "id": "cknjejglu00650i5jcz5410q4",
+      "dataFlowId": "integratedCarrierRouter"
+    }
+  ],
+  "description": "Deploy Latest Integrated Carrier Router Version (3/7)"
+}

@@ -1,0 +1,27 @@
+{
+  "action": {
+    "up": {
+      "transform": "($ ~> | $ | { \"active\": false } |).($mutate({\"api\":$api,\"statement\":'mutation($payload:[' & $type & 'CreatePayloadInput!]!){data:create' & $type & '(payload:$payload){id}}',\"variables\":{\"payload\":[$.{\"create\":$}]}}).data.id)",
+      "bindings": {
+        "api": "application",
+        "type": "DataFlow"
+      }
+    },
+    "down": {
+      "transform": "$mutate({\"api\":$api,\"statement\":'mutation($payload:[' & $type & 'DeletePayloadInput!]!){delete' & $type & '(payload:$payload){id}}',\"variables\":{\"payload\":[$.{\"where\":{\"id\":id}}]}})",
+      "bindings": {
+        "api": "application",
+        "type": "DataFlow"
+      }
+    }
+  },
+  "payload": [
+    {
+      "id": "integratedCarrierPrintLabelsStandard",
+      "name": "Integrated Carrier Print Labels Standard",
+      "description": "",
+      "dataFlowTypeId": "Integration"
+    }
+  ],
+  "description": "Create Integrated Carrier Print Labels Standard Header (4/7)"
+}

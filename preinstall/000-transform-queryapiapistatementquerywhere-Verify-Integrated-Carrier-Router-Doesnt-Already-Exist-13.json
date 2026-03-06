@@ -1,0 +1,22 @@
+{
+  "action": {
+    "transform": "$query({\"api\":$api,\"statement\":'query($where:' & $type & 'WhereInput!){data:' & $lowerFirst($type) & '(where:$where){total}}',\"variables\":{\"where\":{\"_or\":[$fields.{$:{\"_in\":[$lookup($$,$)]}}]}}}).data.total ? $throw(\"Could not verify unique fields for \" & $type & \" records.\")",
+    "bindings": {
+      "api": "application",
+      "type": "DataFlow",
+      "fields": [
+        "id",
+        "name"
+      ]
+    }
+  },
+  "payload": [
+    {
+      "id": "integratedCarrierRouter",
+      "name": "Integrated Carrier Router",
+      "description": "",
+      "dataFlowTypeId": "Integration"
+    }
+  ],
+  "description": "Verify Integrated Carrier Router Doesn't Already Exist (1/3)"
+}

@@ -1,0 +1,10 @@
+{
+  "action": {
+    "transform": "[$.(\n  $mutate({\n    \"statement\": 'mutation ($id:ID!) { updateDataFlow(payload:{ update: { active: true }, where: { id: $id } }) { id } }',\n    \"variables\": {\n      \"id\": $\n    }\n  })\n)]",
+    "bindings": {}
+  },
+  "payload": [
+    "integratedCarrierRouter"
+  ],
+  "description": "Set Integrated Carrier Router Active Field (1/2)"
+}

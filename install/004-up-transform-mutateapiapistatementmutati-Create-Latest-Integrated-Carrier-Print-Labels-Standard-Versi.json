@@ -1,0 +1,1433 @@
+{
+  "action": {
+    "up": {
+      "transform": "$mutate({\"api\":$api,\"statement\":'mutation($payload:[' & $type & 'CreatePayloadInput!]!){data:create' & $type & '(payload:$payload){id}}',\"variables\":{\"payload\":[$.{\"create\":$}]}}).data.id",
+      "bindings": {
+        "api": "application",
+        "type": "DataFlowVersion"
+      }
+    },
+    "down": {
+      "transform": "$",
+      "bindings": {}
+    }
+  },
+  "payload": [
+    {
+      "id": "cknjdqsxb003y0j8rb106f6ek",
+      "number": "0.0.4",
+      "description": "",
+      "dataFlowId": "integratedCarrierPrintLabelsStandard",
+      "flow": {
+        "id": "cknjdqsxb003y0j8rb106f6ek",
+        "name": "Integrated Carrier Print Labels Standard",
+        "type": "Integration",
+        "nodes": [
+          {
+            "id": "15cebcb3-9eab-463d-9c9e-daa8aebedfd0",
+            "name": "Request",
+            "type": "request",
+            "data": {
+              "nextNodes": [
+                "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5"
+              ]
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "a815d3af-7776-4d4e-89b4-6ce85f5fa0d6",
+            "name": "Response",
+            "type": "response",
+            "data": {
+              "responseTransform": "{\n  \"printRequests\": $,\n  \"success\": $count($[response.success = false]) = 0\n}"
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "a63051b4-ee2d-4014-9ef1-5c683c3d3707",
+            "name": "Print Raw",
+            "type": "devicePrintRaw",
+            "data": {
+              "nextNodes": [
+                "99e3b28d-50c0-4af7-a10f-424e2e4e96b0"
+              ],
+              "dataTransform": "label.data",
+              "filenameTransform": "trackingNumber & \".zpl\"",
+              "deviceIdTransform": "\"cknjd7dt000360j8rabudhlp9\""
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "13046aee-92a0-41d9-827f-e019ed0bf738",
+            "name": "Label Type",
+            "type": "switch",
+            "data": {
+              "branches": [
+                {
+                  "name": "ZPL",
+                  "nextNodes": [
+                    "a63051b4-ee2d-4014-9ef1-5c683c3d3707"
+                  ],
+                  "transform": "label.format = 'ZPL' or label.format = 'ZPLII'\n"
+                },
+                {
+                  "name": "PDF",
+                  "nextNodes": [
+                    "1a6aeffc-06d2-48a5-b504-54cce65729d5"
+                  ],
+                  "transform": "label.format = 'PDF'\n"
+                },
+                {
+                  "name": "Else",
+                  "transform": "true",
+                  "nextNodes": [
+                    "8045c8a7-f3f7-4867-a1b5-cc2b22e43cc2"
+                  ]
+                }
+              ]
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "1a6aeffc-06d2-48a5-b504-54cce65729d5",
+            "name": "Print Data",
+            "type": "devicePrintDocument",
+            "data": {
+              "nextNodes": [
+                "99e3b28d-50c0-4af7-a10f-424e2e4e96b0"
+              ],
+              "filenameTransform": "trackingNumber & \".pdf\"",
+              "dataTransform": "label.data",
+              "deviceIdTransform": "\"cknjd7nvs00370j8r3btlgg6b\""
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5",
+            "name": "Set Context",
+            "type": "setContext",
+            "data": {
+              "nextNodes": [
+                "21e058c7-683c-49e3-baef-41e25f1b1db5"
+              ],
+              "transform": "{\n  \"parameters\": $\n}"
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "4b783ec7-e4bc-43a1-908e-760a908037b5",
+            "name": "Broadcast",
+            "type": "broadcast",
+            "data": {
+              "nextNodes": [
+                "13046aee-92a0-41d9-827f-e019ed0bf738"
+              ]
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "21e058c7-683c-49e3-baef-41e25f1b1db5",
+            "name": "Transform",
+            "type": "transform",
+            "data": {
+              "nextNodes": [
+                "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807"
+              ],
+              "transform": "$state.context.parameters.shipment.packageLabels"
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807",
+            "name": "Has labels?",
+            "type": "ifElse",
+            "data": {
+              "onTrueNextNodes": [
+                "4b783ec7-e4bc-43a1-908e-760a908037b5"
+              ],
+              "onFalseNextNodes": [
+                "339046fc-d4ea-4d21-a34e-edcabd9c784c"
+              ],
+              "transform": "$not($isNilOrEmpty($))"
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "339046fc-d4ea-4d21-a34e-edcabd9c784c",
+            "name": "Throw No Labels",
+            "type": "response",
+            "data": {
+              "responseTransform": "$throw(\"No package labels found for shipment \" & $shipment.number)",
+              "nextNodes": []
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "8045c8a7-f3f7-4867-a1b5-cc2b22e43cc2",
+            "name": "Throw No Labels",
+            "type": "response",
+            "data": {
+              "responseTransform": "$throw(\"Unsupported label format \" & label.format)",
+              "nextNodes": []
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          },
+          {
+            "id": "99e3b28d-50c0-4af7-a10f-424e2e4e96b0",
+            "name": "Combine",
+            "type": "combine",
+            "data": {
+              "executionTimeout": 30,
+              "payloadCombinationStrategy": "index",
+              "contextCombinationStrategy": "first",
+              "nextNodes": [
+                "a815d3af-7776-4d4e-89b4-6ce85f5fa0d6"
+              ]
+            },
+            "debug": {
+              "breakpointEnabled": false
+            }
+          }
+        ],
+        "version": "0.0.3"
+      },
+      "diagram": {
+        "id": "cknjdqsxb003y0j8rb106f6ek",
+        "offsetX": -350.92,
+        "offsetY": 34.92,
+        "zoom": 95,
+        "gridSize": 5,
+        "layers": [
+          {
+            "id": "50273c84-6442-4ec0-b324-2ff1ec89fcc2",
+            "type": "diagram-links",
+            "isSvg": true,
+            "transformed": true,
+            "models": {
+              "6ba3256b-69e3-40ea-a3a7-a9f4ece18eff": {
+                "points": [
+                  {
+                    "id": "25cbc48d-e4c7-462e-b71e-e558c3bd28a4",
+                    "type": "point",
+                    "x": -161.02,
+                    "y": 214.5
+                  },
+                  {
+                    "id": "98cb41df-d8c4-4707-adfc-aa0289b6b277",
+                    "type": "point",
+                    "x": -110,
+                    "y": 249.5
+                  }
+                ],
+                "id": "6ba3256b-69e3-40ea-a3a7-a9f4ece18eff",
+                "type": "default",
+                "source": "bf56c28b-5969-401a-9f10-41dcb7caddf1",
+                "sourcePort": "cknjckk6p00083b64wnn6z0a5",
+                "target": "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5",
+                "targetPort": "cknjcqsm5001b3b64rp5bx5sx",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "e80f7a8c-9767-41f6-9db8-07ed29f425b0": {
+                "points": [
+                  {
+                    "id": "fda335a0-813f-44b0-a2c3-a54e69e85f8f",
+                    "type": "point",
+                    "x": -161,
+                    "y": 284.5
+                  },
+                  {
+                    "id": "b1997a7e-aae8-47de-9e0f-30c01ca484a2",
+                    "type": "point",
+                    "x": -110,
+                    "y": 249.5
+                  }
+                ],
+                "id": "e80f7a8c-9767-41f6-9db8-07ed29f425b0",
+                "type": "default",
+                "source": "15cebcb3-9eab-463d-9c9e-daa8aebedfd0",
+                "sourcePort": "cknjckm2m000a3b64e5ncljng",
+                "target": "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5",
+                "targetPort": "cknjcqsm5001b3b64rp5bx5sx",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "0135cde9-bb88-47f3-92ad-fb5dc00035fb": {
+                "points": [
+                  {
+                    "id": "d22560e7-4ce4-466a-b8fb-ecb871d11cb0",
+                    "type": "point",
+                    "x": 609,
+                    "y": 249.5
+                  },
+                  {
+                    "id": "64a0fff6-d055-4274-9375-4d19dde870d0",
+                    "type": "point",
+                    "x": 645,
+                    "y": 249.5
+                  }
+                ],
+                "id": "0135cde9-bb88-47f3-92ad-fb5dc00035fb",
+                "type": "default",
+                "selected": false,
+                "source": "4b783ec7-e4bc-43a1-908e-760a908037b5",
+                "sourcePort": "cknjcvzx4002e3b64xh86nwpf",
+                "target": "13046aee-92a0-41d9-827f-e019ed0bf738",
+                "targetPort": "cknjcl11g000k3b64na1if6yw",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "a5c2e002-db4e-4833-acf8-2fba79f9e5f2": {
+                "points": [
+                  {
+                    "id": "6ecc11e5-b0cf-420e-9274-adc6797b7888",
+                    "type": "point",
+                    "x": 44,
+                    "y": 249.5
+                  },
+                  {
+                    "id": "da9faa8b-9490-46d2-97e3-898b19f80af0",
+                    "type": "point",
+                    "x": 75,
+                    "y": 249.5
+                  }
+                ],
+                "id": "a5c2e002-db4e-4833-acf8-2fba79f9e5f2",
+                "type": "default",
+                "source": "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5",
+                "sourcePort": "cknjcqsm5001d3b645r1u1rhi",
+                "target": "21e058c7-683c-49e3-baef-41e25f1b1db5",
+                "targetPort": "cknjcw8m7002g3b64ix28tea2",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "ee985386-e67f-403c-8e87-0a3b96175543": {
+                "points": [
+                  {
+                    "id": "585403a3-013c-4444-8e5e-396f42cba952",
+                    "type": "point",
+                    "x": 423.98,
+                    "y": 249.5
+                  },
+                  {
+                    "id": "15d5a8a0-3fb0-4959-8ed4-05b174f23b9d",
+                    "type": "point",
+                    "x": 455,
+                    "y": 249.5
+                  }
+                ],
+                "id": "ee985386-e67f-403c-8e87-0a3b96175543",
+                "type": "default",
+                "source": "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807",
+                "sourcePort": "cknjcwldj002m3b64dknlj1hs",
+                "target": "4b783ec7-e4bc-43a1-908e-760a908037b5",
+                "targetPort": "cknjcvzx4002c3b64l3yboop7",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "04781410-a098-4d8e-b66d-8f27acec5297": {
+                "points": [
+                  {
+                    "id": "fe3f68ba-2123-42a7-bded-95904def418b",
+                    "type": "point",
+                    "x": 229,
+                    "y": 249.5
+                  },
+                  {
+                    "id": "49c06c6f-afa9-4538-961a-2a3c0a26ca61",
+                    "type": "point",
+                    "x": 270,
+                    "y": 249.5
+                  }
+                ],
+                "id": "04781410-a098-4d8e-b66d-8f27acec5297",
+                "type": "default",
+                "source": "21e058c7-683c-49e3-baef-41e25f1b1db5",
+                "sourcePort": "cknjcw8m7002i3b645gczxq9s",
+                "target": "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807",
+                "targetPort": "cknjcwldj002k3b64wwxbozru",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "5983efea-62a7-4859-8f00-6486d1c027dc": {
+                "points": [
+                  {
+                    "id": "ad187dd8-5b31-41b7-bd67-e0ef09680577",
+                    "type": "point",
+                    "x": 423.98,
+                    "y": 274.5
+                  },
+                  {
+                    "id": "ee707e52-9e2f-429b-83c4-0f3553c77c45",
+                    "type": "point",
+                    "x": 450,
+                    "y": 334.5
+                  }
+                ],
+                "id": "5983efea-62a7-4859-8f00-6486d1c027dc",
+                "type": "default",
+                "source": "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807",
+                "sourcePort": "cknjcwldj002o3b6429uo17xo",
+                "target": "339046fc-d4ea-4d21-a34e-edcabd9c784c",
+                "targetPort": "cknjcwuup002y3b64wbdvrt5l",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "fb84204f-b238-42f8-9a20-6255ae2f633f": {
+                "points": [
+                  {
+                    "id": "7c8d6894-a74c-4ab9-b041-89a9a6e8e7ce",
+                    "type": "point",
+                    "x": 799,
+                    "y": 249.5
+                  },
+                  {
+                    "id": "12025ea2-ea39-4f39-9a6d-8f0950921540",
+                    "type": "point",
+                    "x": 905,
+                    "y": 204.5
+                  }
+                ],
+                "id": "fb84204f-b238-42f8-9a20-6255ae2f633f",
+                "type": "default",
+                "source": "13046aee-92a0-41d9-827f-e019ed0bf738",
+                "sourcePort": "cknjcl4co000m3b64azr0z0vb",
+                "target": "a63051b4-ee2d-4014-9ef1-5c683c3d3707",
+                "targetPort": "cknjckwcv000g3b64x3gml5ab",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "dc2d0e90-49f3-4e8d-a6cf-7f5d55915368": {
+                "points": [
+                  {
+                    "id": "04e735da-88db-4c1d-b12f-461268de1445",
+                    "type": "point",
+                    "x": 799,
+                    "y": 274.5
+                  },
+                  {
+                    "id": "734b51db-62a2-4337-b147-edd2cf10293e",
+                    "type": "point",
+                    "x": 905,
+                    "y": 274.5
+                  }
+                ],
+                "id": "dc2d0e90-49f3-4e8d-a6cf-7f5d55915368",
+                "type": "default",
+                "source": "13046aee-92a0-41d9-827f-e019ed0bf738",
+                "sourcePort": "cknjcl7p0000o3b64akb365y3",
+                "target": "1a6aeffc-06d2-48a5-b504-54cce65729d5",
+                "targetPort": "cknjcljkp000q3b6440xe5uhm",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "104e7f00-80f8-4e2b-8a09-1204c57e2a09": {
+                "points": [
+                  {
+                    "id": "5bd428cd-7583-4e47-a2a3-caa0c162f86c",
+                    "type": "point",
+                    "x": 799,
+                    "y": 299.5
+                  },
+                  {
+                    "id": "270a3137-89bf-434c-9d0a-423dceb9c345",
+                    "type": "point",
+                    "x": 905,
+                    "y": 344.5
+                  }
+                ],
+                "id": "104e7f00-80f8-4e2b-8a09-1204c57e2a09",
+                "type": "default",
+                "selected": false,
+                "source": "13046aee-92a0-41d9-827f-e019ed0bf738",
+                "sourcePort": "cknjclyd0000u3b64nqo2nefy",
+                "target": "8045c8a7-f3f7-4867-a1b5-cc2b22e43cc2",
+                "targetPort": "cknjd9g94005s3b64mxemt77a",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "d4aa8256-868b-4c05-aabe-26691fc344db": {
+                "points": [
+                  {
+                    "id": "b0e21cad-4710-46c8-9a24-a81faf6dcbe0",
+                    "type": "point",
+                    "x": 1059,
+                    "y": 204.5
+                  },
+                  {
+                    "id": "fd5eb95a-688e-48f4-8a32-82ffc783b83a",
+                    "type": "point",
+                    "x": 1155,
+                    "y": 274.5
+                  }
+                ],
+                "id": "d4aa8256-868b-4c05-aabe-26691fc344db",
+                "type": "default",
+                "source": "a63051b4-ee2d-4014-9ef1-5c683c3d3707",
+                "sourcePort": "cknjckwcw000i3b649eqgcpmc",
+                "target": "99e3b28d-50c0-4af7-a10f-424e2e4e96b0",
+                "targetPort": "cknjdl83z009y3b64nbx6cpd6",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "6e07c6e9-8bd9-4996-af91-05084cbf4c0c": {
+                "points": [
+                  {
+                    "id": "607061e0-ff22-43a3-912c-f0c2939de9eb",
+                    "type": "point",
+                    "x": 1059,
+                    "y": 274.5
+                  },
+                  {
+                    "id": "3f2092e8-1bd6-4f5b-a630-a4540147d236",
+                    "type": "point",
+                    "x": 1155,
+                    "y": 274.5
+                  }
+                ],
+                "id": "6e07c6e9-8bd9-4996-af91-05084cbf4c0c",
+                "type": "default",
+                "source": "1a6aeffc-06d2-48a5-b504-54cce65729d5",
+                "sourcePort": "cknjcljkp000s3b64b1zbm7he",
+                "target": "99e3b28d-50c0-4af7-a10f-424e2e4e96b0",
+                "targetPort": "cknjdl83z009y3b64nbx6cpd6",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              },
+              "ab25bddd-3f6c-4a29-8190-2ab61ab75d2c": {
+                "points": [
+                  {
+                    "id": "7a7318f3-cda7-4104-a4dd-351da1b9f3ad",
+                    "type": "point",
+                    "x": 1309,
+                    "y": 274.5
+                  },
+                  {
+                    "id": "92cdb281-0be0-4701-ab6a-f0dd3001da7b",
+                    "type": "point",
+                    "x": 1360,
+                    "y": 274.5
+                  }
+                ],
+                "id": "ab25bddd-3f6c-4a29-8190-2ab61ab75d2c",
+                "type": "default",
+                "selected": false,
+                "source": "99e3b28d-50c0-4af7-a10f-424e2e4e96b0",
+                "sourcePort": "cknjdl83z00a03b6445afxjqi",
+                "target": "a815d3af-7776-4d4e-89b4-6ce85f5fa0d6",
+                "targetPort": "cknjckmtd000c3b64yp9b47yf",
+                "labels": [],
+                "width": 3,
+                "curvyness": 50
+              }
+            }
+          },
+          {
+            "id": "7c7efba7-5385-49db-960d-a3100653e366",
+            "type": "diagram-nodes",
+            "isSvg": false,
+            "transformed": true,
+            "models": {
+              "bf56c28b-5969-401a-9f10-41dcb7caddf1": {
+                "id": "bf56c28b-5969-401a-9f10-41dcb7caddf1",
+                "type": "debugSource",
+                "selected": false,
+                "x": -315,
+                "y": 175,
+                "ports": [
+                  {
+                    "id": "cknjckk6p00083b64wnn6z0a5",
+                    "type": "default",
+                    "x": -169.02,
+                    "y": 206.5,
+                    "name": "cknjckk6p00093b648oxp84l4",
+                    "parentNode": "bf56c28b-5969-401a-9f10-41dcb7caddf1",
+                    "links": [
+                      "6ba3256b-69e3-40ea-a3a7-a9f4ece18eff"
+                    ],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Output",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "payload": {
+                    "connectionId": "ckn99qf8m000y0i9g803s1ktc",
+                    "sandbox": true,
+                    "shipment": {
+                      "packageLabels": [
+                        {
+                          "trackingNumber": "794613309461",
+                          "label": {
+                            "data": "^XA^CF,0,0,0^PR12^MD30^PW800^POI^CI13^LH0,20\n^FO12,139^GB753,2,2^FS\n^FO12,405^GB777,2,2^FS\n^FO464,8^GB2,129,2^FS\n^FO478,46^AdN,0,0^FWN^FH^FDCAD: 118972760/WSXI3200^FS\n^FO28,747^A0N,24,24^FWN^FH^FDTRK#^FS\n^FO28,805^A0N,27,32^FWN^FH^FD## MASTER ## ^FS\n^FO136,717^A0N,27,36^FWN^FH^FD1 of 3^FS\n^FO32,10^AdN,0,0^FWN^FH^FDORIGIN ID:MQYA ^FS\n^FO224,10^AdN,0,0^FWN^FH^FD84429^FS\n^FO32,28^AdN,0,0^FWN^FH^FD^FS\n^FO32,46^AdN,0,0^FWN^FH^FDCUMULUS CONSULTING, LLC^FS\n^FO32,64^AdN,0,0^FWN^FH^FD3205 WHITES CREEK PIKE^FS\n^FO32,82^AdN,0,0^FWN^FH^FD^FS\n^FO32,100^AdN,0,0^FWN^FH^FDNASHVILLE, TN 37207^FS\n^FO32,118^AdN,0,0^FWN^FH^FDUNITED STATES US^FS\n^FO15,151^A0N,21,21^FWN^FH^FDTO^FS\n^FO60,149^A0N,38,38^FWN^FH^FD^FS\n^FO60,191^A0N,38,38^FWN^FH^FDGMPT WARREN TRANS 6 SPEED^FS\n^FO60,233^A0N,38,38^FWN^FH^FDBAY LOGISTICS^FS\n^FO60,275^A0N,38,38^FWN^FH^FD**TEST LABEL - DO NOT SHIP**^FS\n^FO60,317^A0N,43,40^FWN^FH^FDHAMTRAMCK MI 48212^FS\n^FO35,359^A0N,21,21^FWN^FH^FD(888) 867-5309^FS\n^FO677,511^GB104,10,10^FS\n^FO677,521^GB10,112,10^FS\n^FO771,521^GB10,112,10^FS\n^FO677,633^GB104,10,10^FS\n^FO652,449^A0N,43,58^FWN^FH^FDFedEx^FS\n^FO708,488^A0N,19,26^FWN^FH^FDExpress^FS\n^FO697,529^A0N,128,137^FWN^FH^FDE^FS\n^FO21,416^BY2,3^BCN,25,N,N,N^FWN^FD7BAY LOGISTICS^FS\n^FO21,449^BY2,2^B7N,10,5,14^FH^FWN^FH^FD[)>_1E01_1D0248212_1D840_1D05_1D7946133094610201_1DFDE_1D510087100_1D105_1D_1D1/3_1D58.00LB_1DN_1DBAY LOGISTICS_1DHAMTRAMCK_1DMI_1DGMPT WARREN TRANS 6 SPEED_1E06_1D10ZED008_1D12Z8888675309_1D14ZCISCO CODE 51099_1D15Z118972760_1D20Z_1C_1D31Z1001910532260004821200794613309461_1D32Z02_1D34Z01_1D39ZMQYA_1D_1E09_1DFDX_1Dz_1D8_1D_1F_09*&5/_7F@_1E_04^FS\n^FO478,100^AdN,0,0^FWN^FH^FDBILL SENDER^FS\n^FO12,694^GB777,2,2^FS\n^FO494,890^A0N,43,43^FWN^FH^FD^FS\n^FO791,120^AbN,11,7^FWB^FH^FD56DJ3/F9A6/FE4A^FS\n^FO95,751^A0N,53,40^FWN^FH^FD7946 1330 9461^FS\n^FO409,700^A0N,51,38^FWN^FH^FB390,,,R,^FD FRI - 16 APR 4:30P^FS\n^FO309,752^A0N,51,38^FWN^FH^FB490,,,R,^FD STANDARD OVERNIGHT^FS\n^FO413,804^A0N,40,40^FWN^FH^FB386,,,R,^FD                ^FS\n^FO495,846^A0N,44,44^FWN^FH^FB298,,,R,^FD     48212^FS\n^FO574,906^A0N,24,24^FWN^FH^FB120,,,R,^FD MI-US^FS\n^FO695,890^A0N,43,43^FWN^FH^FB100,,,R,^FDDTW^FS\n^FO39,932^A0N,27,32^FWN^FH^FD^FS\n^FO75,993^BY3,2^BCN,200,N,N,N,N^FWN^FD>;1001910532260004821200000000000000^FS\n^FO28,842^A0N,107,96^FWN^FH^FDNL PTKA ^FS\n^FO790,523^A0N,13,18^FWB^FH^FDJ211021010401uv^FS\n^FO478,10^AdN,0,0^FWN^FH^FDSHIP DATE: 15APR21^FS\n^FO478,28^AdN,0,0^FWN^FH^FDACTWGT: 58.00 LB^FS\n^FO328,364^AbN,11,7^FWN^FH^FDREF: S010471^FS\n^FO38,378^AbN,11,7^FWN^FH^FDINV: ^FS\n^FO38,392^AbN,11,7^FWN^FH^FDPO: ^FS\n^FO428,392^AbN,11,7^FWN^FH^FDDEPT: ^FS\n^FO25,768^GB58,1,1^FS\n^FO25,768^GB1,26,1^FS\n^FO83,768^GB1,26,1^FS\n^FO25,794^GB58,1,1^FS\n^FO31,774^AdN,0,0^FWN^FH^FD0201^FS\n^PQ1\n^XZ\n",
+                            "format": "ZPLII"
+                          }
+                        },
+                        {
+                          "trackingNumber": "794613309483",
+                          "label": {
+                            "data": "^XA^CF,0,0,0^PR12^MD30^PW800^POI^CI13^LH0,20\n^FO12,139^GB753,2,2^FS\n^FO12,405^GB777,2,2^FS\n^FO464,8^GB2,129,2^FS\n^FO478,46^AdN,0,0^FWN^FH^FDCAD: 118972760/WSXI3200^FS\n^FO28,747^A0N,24,24^FWN^FH^FDMPS#^FS\n^FO28,805^A0N,27,32^FWN^FH^FDMstr# 7946 1330 9461^FS\n^FO136,717^A0N,27,36^FWN^FH^FD2 of 3^FS\n^FO32,10^AdN,0,0^FWN^FH^FDORIGIN ID:MQYA ^FS\n^FO224,10^AdN,0,0^FWN^FH^FD84429^FS\n^FO32,28^AdN,0,0^FWN^FH^FD^FS\n^FO32,46^AdN,0,0^FWN^FH^FDCUMULUS CONSULTING, LLC^FS\n^FO32,64^AdN,0,0^FWN^FH^FD3205 WHITES CREEK PIKE^FS\n^FO32,82^AdN,0,0^FWN^FH^FD^FS\n^FO32,100^AdN,0,0^FWN^FH^FDNASHVILLE, TN 37207^FS\n^FO32,118^AdN,0,0^FWN^FH^FDUNITED STATES US^FS\n^FO15,151^A0N,21,21^FWN^FH^FDTO^FS\n^FO60,149^A0N,38,38^FWN^FH^FD^FS\n^FO60,191^A0N,38,38^FWN^FH^FDGMPT WARREN TRANS 6 SPEED^FS\n^FO60,233^A0N,38,38^FWN^FH^FDBAY LOGISTICS^FS\n^FO60,275^A0N,38,38^FWN^FH^FD**TEST LABEL - DO NOT SHIP**^FS\n^FO60,317^A0N,43,40^FWN^FH^FDHAMTRAMCK MI 48212^FS\n^FO35,359^A0N,21,21^FWN^FH^FD(888) 867-5309^FS\n^FO677,511^GB104,10,10^FS\n^FO677,521^GB10,112,10^FS\n^FO771,521^GB10,112,10^FS\n^FO677,633^GB104,10,10^FS\n^FO652,449^A0N,43,58^FWN^FH^FDFedEx^FS\n^FO708,488^A0N,19,26^FWN^FH^FDExpress^FS\n^FO697,529^A0N,128,137^FWN^FH^FDE^FS\n^FO21,416^BY2,3^BCN,25,N,N,N^FWN^FD7BAY LOGISTICS^FS\n^FO21,449^BY2,2^B7N,10,5,14^FH^FWN^FH^FD[)>_1E01_1D0248212_1D840_1D05_1D7946133094830263_1DFDE_1D510087100_1D105_1D_1D2/3_1D58.00LB_1DN_1DBAY LOGISTICS_1DHAMTRAMCK_1DMI_1DGMPT WARREN TRANS 6 SPEED_1E06_1D10ZED008_1D12Z8888675309_1D14ZCISCO CODE 51099_1D15Z118972760_1D20Z_1C_1D28Z7946133094610201_1D31Z1002866832260004821200794613309483_1D32Z02_1D34Z01_1D39ZMQYA_1D_1E09_1DFDX_1Dz_1D8_1D_1F_09*&5/_7F@_1E_04^FS\n^FO478,100^AdN,0,0^FWN^FH^FDBILL SENDER^FS\n^FO12,694^GB777,2,2^FS\n^FO494,890^A0N,43,43^FWN^FH^FD^FS\n^FO791,120^AbN,11,7^FWB^FH^FD56DJ3/F9A6/FE4A^FS\n^FO95,751^A0N,53,40^FWN^FH^FD7946 1330 9483^FS\n^FO409,700^A0N,51,38^FWN^FH^FB390,,,R,^FD FRI - 16 APR 4:30P^FS\n^FO309,752^A0N,51,38^FWN^FH^FB490,,,R,^FD STANDARD OVERNIGHT^FS\n^FO413,804^A0N,40,40^FWN^FH^FB386,,,R,^FD                ^FS\n^FO495,846^A0N,44,44^FWN^FH^FB298,,,R,^FD     48212^FS\n^FO574,906^A0N,24,24^FWN^FH^FB120,,,R,^FD MI-US^FS\n^FO695,890^A0N,43,43^FWN^FH^FB100,,,R,^FDDTW^FS\n^FO39,932^A0N,27,32^FWN^FH^FD^FS\n^FO75,993^BY3,2^BCN,200,N,N,N,N^FWN^FD>;1002866832260004821200000000000000^FS\n^FO28,842^A0N,107,96^FWN^FH^FDNL PTKA ^FS\n^FO790,523^A0N,13,18^FWB^FH^FDJ211021010401uv^FS\n^FO478,10^AdN,0,0^FWN^FH^FDSHIP DATE: 15APR21^FS\n^FO478,28^AdN,0,0^FWN^FH^FDACTWGT: 58.00 LB^FS\n^FO328,364^AbN,11,7^FWN^FH^FDREF: S010472^FS\n^FO38,378^AbN,11,7^FWN^FH^FDINV: ^FS\n^FO38,392^AbN,11,7^FWN^FH^FDPO: ^FS\n^FO428,392^AbN,11,7^FWN^FH^FDDEPT: ^FS\n^FO25,768^GB58,1,1^FS\n^FO25,768^GB1,26,1^FS\n^FO83,768^GB1,26,1^FS\n^FO25,794^GB58,1,1^FS\n^FO31,774^AdN,0,0^FWN^FH^FD0263^FS\n^FO386,805^GB58,1,1^FS\n^FO386,805^GB1,26,1^FS\n^FO444,805^GB1,26,1^FS\n^FO386,831^GB58,1,1^FS\n^FO392,811^AdN,0,0^FWN^FH^FD0201^FS\n^PQ1\n^XZ\n",
+                            "format": "ZPLII"
+                          }
+                        },
+                        {
+                          "trackingNumber": "794613309509",
+                          "label": {
+                            "data": "^XA^CF,0,0,0^PR12^MD30^PW800^POI^CI13^LH0,20\n^FO12,139^GB753,2,2^FS\n^FO12,405^GB777,2,2^FS\n^FO464,8^GB2,129,2^FS\n^FO478,46^AdN,0,0^FWN^FH^FDCAD: 118972760/WSXI3200^FS\n^FO28,747^A0N,24,24^FWN^FH^FDMPS#^FS\n^FO28,805^A0N,27,32^FWN^FH^FDMstr# 7946 1330 9461^FS\n^FO136,717^A0N,27,36^FWN^FH^FD3 of 3^FS\n^FO32,10^AdN,0,0^FWN^FH^FDORIGIN ID:MQYA ^FS\n^FO224,10^AdN,0,0^FWN^FH^FD84429^FS\n^FO32,28^AdN,0,0^FWN^FH^FD^FS\n^FO32,46^AdN,0,0^FWN^FH^FDCUMULUS CONSULTING, LLC^FS\n^FO32,64^AdN,0,0^FWN^FH^FD3205 WHITES CREEK PIKE^FS\n^FO32,82^AdN,0,0^FWN^FH^FD^FS\n^FO32,100^AdN,0,0^FWN^FH^FDNASHVILLE, TN 37207^FS\n^FO32,118^AdN,0,0^FWN^FH^FDUNITED STATES US^FS\n^FO15,151^A0N,21,21^FWN^FH^FDTO^FS\n^FO60,149^A0N,38,38^FWN^FH^FD^FS\n^FO60,191^A0N,38,38^FWN^FH^FDGMPT WARREN TRANS 6 SPEED^FS\n^FO60,233^A0N,38,38^FWN^FH^FDBAY LOGISTICS^FS\n^FO60,275^A0N,38,38^FWN^FH^FD**TEST LABEL - DO NOT SHIP**^FS\n^FO60,317^A0N,43,40^FWN^FH^FDHAMTRAMCK MI 48212^FS\n^FO35,359^A0N,21,21^FWN^FH^FD(888) 867-5309^FS\n^FO677,511^GB104,10,10^FS\n^FO677,521^GB10,112,10^FS\n^FO771,521^GB10,112,10^FS\n^FO677,633^GB104,10,10^FS\n^FO652,449^A0N,43,58^FWN^FH^FDFedEx^FS\n^FO708,488^A0N,19,26^FWN^FH^FDExpress^FS\n^FO697,529^A0N,128,137^FWN^FH^FDE^FS\n^FO21,416^BY2,3^BCN,25,N,N,N^FWN^FD7BAY LOGISTICS^FS\n^FO21,449^BY2,2^B7N,10,5,14^FH^FWN^FH^FD[)>_1E01_1D0248212_1D840_1D05_1D7946133095090263_1DFDE_1D510087100_1D105_1D_1D3/3_1D58.00LB_1DN_1DBAY LOGISTICS_1DHAMTRAMCK_1DMI_1DGMPT WARREN TRANS 6 SPEED_1E06_1D10ZED008_1D12Z8888675309_1D14ZCISCO CODE 51099_1D15Z118972760_1D20Z_1C_1D28Z7946133094610201_1D31Z1002866832260004821200794613309509_1D32Z02_1D34Z01_1D39ZMQYA_1D_1E09_1DFDX_1Dz_1D8_1D_1F_09*&5/_7F@_1E_04^FS\n^FO478,100^AdN,0,0^FWN^FH^FDBILL SENDER^FS\n^FO12,694^GB777,2,2^FS\n^FO494,890^A0N,43,43^FWN^FH^FD^FS\n^FO791,120^AbN,11,7^FWB^FH^FD56DJ3/F9A6/FE4A^FS\n^FO95,751^A0N,53,40^FWN^FH^FD7946 1330 9509^FS\n^FO409,700^A0N,51,38^FWN^FH^FB390,,,R,^FD FRI - 16 APR 4:30P^FS\n^FO309,752^A0N,51,38^FWN^FH^FB490,,,R,^FD STANDARD OVERNIGHT^FS\n^FO413,804^A0N,40,40^FWN^FH^FB386,,,R,^FD                ^FS\n^FO495,846^A0N,44,44^FWN^FH^FB298,,,R,^FD     48212^FS\n^FO574,906^A0N,24,24^FWN^FH^FB120,,,R,^FD MI-US^FS\n^FO695,890^A0N,43,43^FWN^FH^FB100,,,R,^FDDTW^FS\n^FO39,932^A0N,27,32^FWN^FH^FD^FS\n^FO75,993^BY3,2^BCN,200,N,N,N,N^FWN^FD>;1002866832260004821200000000000000^FS\n^FO28,842^A0N,107,96^FWN^FH^FDNL PTKA ^FS\n^FO790,523^A0N,13,18^FWB^FH^FDJ211021010401uv^FS\n^FO478,10^AdN,0,0^FWN^FH^FDSHIP DATE: 15APR21^FS\n^FO478,28^AdN,0,0^FWN^FH^FDACTWGT: 58.00 LB^FS\n^FO328,364^AbN,11,7^FWN^FH^FDREF: S010473^FS\n^FO38,378^AbN,11,7^FWN^FH^FDINV: ^FS\n^FO38,392^AbN,11,7^FWN^FH^FDPO: ^FS\n^FO428,392^AbN,11,7^FWN^FH^FDDEPT: ^FS\n^FO25,768^GB58,1,1^FS\n^FO25,768^GB1,26,1^FS\n^FO83,768^GB1,26,1^FS\n^FO25,794^GB58,1,1^FS\n^FO31,774^AdN,0,0^FWN^FH^FD0263^FS\n^FO386,805^GB58,1,1^FS\n^FO386,805^GB1,26,1^FS\n^FO444,805^GB1,26,1^FS\n^FO386,831^GB58,1,1^FS\n^FO392,811^AdN,0,0^FWN^FH^FD0201^FS\n^PQ1\n^XZ\n",
+                            "format": "ZPLII"
+                          }
+                        }
+                      ],
+                      "id": "plex-6662902",
+                      "number": "BN00095",
+                      "description": null,
+                      "shipTo": {
+                        "name": "GMPT WARREN TRANS 6 SPEED",
+                        "phoneNumber": "888-867-5309",
+                        "address": {
+                          "lines": [
+                            "BAY LOGISTICS\r",
+                            "CISCO CODE 51099\r",
+                            "9450 BUFFALO"
+                          ],
+                          "city": "HAMTRAMCK",
+                          "state": "MI",
+                          "postalCode": "48212",
+                          "country": "US"
+                        }
+                      },
+                      "shipToAddress": {
+                        "lines": [
+                          "BAY LOGISTICS\r",
+                          "CISCO CODE 51099\r",
+                          "9450 BUFFALO"
+                        ],
+                        "city": "HAMTRAMCK",
+                        "state": "MI",
+                        "postalCode": "48212",
+                        "country": "US"
+                      },
+                      "shipFrom": {
+                        "name": "Cumulus Consulting, LLC",
+                        "phoneNumber": "844-2CLOUD9",
+                        "address": {
+                          "lines": [
+                            "3205 Whites Creek Pike"
+                          ],
+                          "city": "Nashville",
+                          "state": "TN",
+                          "postalCode": "37207",
+                          "country": "US"
+                        }
+                      },
+                      "shipFromAddress": {
+                        "lines": [
+                          "3205 Whites Creek Pike"
+                        ],
+                        "city": "Nashville",
+                        "state": "TN",
+                        "postalCode": "37207",
+                        "country": "US"
+                      },
+                      "packageDefinitions": [
+                        {
+                          "referenceNumbers": [
+                            {
+                              "type": {
+                                "id": "serialNumber",
+                                "label": "Serial Number"
+                              },
+                              "value": "S010471"
+                            }
+                          ],
+                          "weight": {
+                            "value": 58,
+                            "unit": {
+                              "id": "pounds",
+                              "label": "lbs",
+                              "code": "lbs"
+                            }
+                          }
+                        },
+                        {
+                          "referenceNumbers": [
+                            {
+                              "type": {
+                                "id": "purchaseOrderNumber",
+                                "label": "Purchase Order Number"
+                              },
+                              "value": "S010472"
+                            }
+                          ],
+                          "weight": {
+                            "value": 58,
+                            "unit": {
+                              "id": "pounds",
+                              "label": "lbs",
+                              "code": "lbs"
+                            }
+                          }
+                        },
+                        {
+                          "referenceNumbers": [
+                            {
+                              "type": {
+                                "id": "customerReferenceNumber",
+                                "label": "Customer Reference Number"
+                              },
+                              "value": "S010473"
+                            }
+                          ],
+                          "weight": {
+                            "value": 58,
+                            "unit": {
+                              "id": "pounds",
+                              "label": "lbs",
+                              "code": "lbs"
+                            }
+                          }
+                        }
+                      ],
+                      "trackingNumber": "794613309461",
+                      "integratedCarrierConnectionConfiguration": {
+                        "id": "ckn9bnkb300160i9g9hti5crw",
+                        "name": "Cumulus FedEx",
+                        "productionConnectionId": "ckn99w4px00080i838y63e1vy",
+                        "sandboxConnectionId": "ckn99qf8m000y0i9g803s1ktc",
+                        "shipperIntegratedCarrierAccount": {
+                          "name": "Cumulus FedEx",
+                          "accountNumber": "510087100",
+                          "meterNumber": "118972760",
+                          "phoneNumber": "",
+                          "integratedCarrierBillingType": {
+                            "name": "FedEx Shipper",
+                            "code": "SENDER"
+                          },
+                          "address": {
+                            "lines": [
+                              "5877 John R. Rd."
+                            ],
+                            "city": "Troy",
+                            "state": "MI",
+                            "postalCode": "48317",
+                            "country": "US"
+                          }
+                        }
+                      },
+                      "integratedCarrierService": {
+                        "id": "ckn9bcseq00110i9g0bo7bwz2",
+                        "name": "FedEx Standard Overnight",
+                        "code": "STANDARD_OVERNIGHT"
+                      },
+                      "integratedCarrierBillToAccount": {
+                        "name": "Cumulus FedEx",
+                        "accountNumber": "510087100",
+                        "meterNumber": "118972760",
+                        "phoneNumber": "",
+                        "integratedCarrierBillingType": {
+                          "name": "FedEx Shipper",
+                          "code": "SENDER"
+                        },
+                        "address": {
+                          "lines": [
+                            "5877 John R. Rd."
+                          ],
+                          "city": "Troy",
+                          "state": "MI",
+                          "postalCode": "48317",
+                          "country": "US"
+                        }
+                      },
+                      "integratedCarrier": {
+                        "id": "ckn9a8tvg000z0i9gb62m5e36",
+                        "name": "FedEx",
+                        "requestFlows": {
+                          "edges": [
+                            {
+                              "node": {
+                                "dataFlowId": "integratedCarrierPrintLabelsStandard"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "nextNodes": [
+                    "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5"
+                  ]
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Source"
+              },
+              "15cebcb3-9eab-463d-9c9e-daa8aebedfd0": {
+                "id": "15cebcb3-9eab-463d-9c9e-daa8aebedfd0",
+                "type": "request",
+                "selected": false,
+                "x": -315,
+                "y": 245,
+                "ports": [
+                  {
+                    "id": "cknjckm2m000a3b64e5ncljng",
+                    "type": "default",
+                    "x": -169,
+                    "y": 276.5,
+                    "name": "cknjckm2m000b3b64eduz9pix",
+                    "parentNode": "15cebcb3-9eab-463d-9c9e-daa8aebedfd0",
+                    "links": [
+                      "e80f7a8c-9767-41f6-9db8-07ed29f425b0"
+                    ],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Payload",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "nextNodes": [
+                    "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5"
+                  ]
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Request"
+              },
+              "a815d3af-7776-4d4e-89b4-6ce85f5fa0d6": {
+                "id": "a815d3af-7776-4d4e-89b4-6ce85f5fa0d6",
+                "type": "response",
+                "selected": false,
+                "x": 1360,
+                "y": 235,
+                "ports": [
+                  {
+                    "id": "cknjckmtd000c3b64yp9b47yf",
+                    "type": "default",
+                    "x": 1352,
+                    "y": 266.5,
+                    "name": "cknjckmtd000d3b64ukhwqb4x",
+                    "parentNode": "a815d3af-7776-4d4e-89b4-6ce85f5fa0d6",
+                    "links": [
+                      "ab25bddd-3f6c-4a29-8190-2ab61ab75d2c"
+                    ],
+                    "in": true,
+                    "fieldLabel": "Response"
+                  },
+                  {
+                    "id": "cknjckmtd000e3b64g7gs54if",
+                    "type": "default",
+                    "x": 1505.98,
+                    "y": 266.5,
+                    "name": "cknjckmtd000f3b64d8h22rpv",
+                    "parentNode": "a815d3af-7776-4d4e-89b4-6ce85f5fa0d6",
+                    "links": [],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Output",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "responseTransform": "{\n  \"printRequests\": $,\n  \"success\": $count($[response.success = false]) = 0\n}"
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Response"
+              },
+              "a63051b4-ee2d-4014-9ef1-5c683c3d3707": {
+                "id": "a63051b4-ee2d-4014-9ef1-5c683c3d3707",
+                "type": "devicePrintRaw",
+                "selected": false,
+                "x": 905,
+                "y": 165,
+                "ports": [
+                  {
+                    "id": "cknjckwcv000g3b64x3gml5ab",
+                    "type": "default",
+                    "x": 897,
+                    "y": 196.5,
+                    "name": "cknjckwcv000h3b64lhu4tyah",
+                    "parentNode": "a63051b4-ee2d-4014-9ef1-5c683c3d3707",
+                    "links": [
+                      "fb84204f-b238-42f8-9a20-6255ae2f633f"
+                    ],
+                    "in": true
+                  },
+                  {
+                    "id": "cknjckwcw000i3b649eqgcpmc",
+                    "type": "default",
+                    "x": 1051,
+                    "y": 196.5,
+                    "name": "cknjckwcw000j3b64mmdpm51k",
+                    "parentNode": "a63051b4-ee2d-4014-9ef1-5c683c3d3707",
+                    "links": [
+                      "d4aa8256-868b-4c05-aabe-26691fc344db"
+                    ],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Output",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "nextNodes": [
+                    "99e3b28d-50c0-4af7-a10f-424e2e4e96b0"
+                  ],
+                  "dataTransform": "label.data",
+                  "filenameTransform": "trackingNumber & \".zpl\"",
+                  "deviceIdTransform": "\"cknjd7dt000360j8rabudhlp9\""
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Print Raw"
+              },
+              "13046aee-92a0-41d9-827f-e019ed0bf738": {
+                "id": "13046aee-92a0-41d9-827f-e019ed0bf738",
+                "type": "switch",
+                "selected": false,
+                "x": 645,
+                "y": 210,
+                "ports": [
+                  {
+                    "id": "cknjcl11g000k3b64na1if6yw",
+                    "type": "default",
+                    "x": 637,
+                    "y": 241.5,
+                    "name": "cknjcl11g000l3b64q0shko0b",
+                    "parentNode": "13046aee-92a0-41d9-827f-e019ed0bf738",
+                    "links": [
+                      "0135cde9-bb88-47f3-92ad-fb5dc00035fb"
+                    ],
+                    "in": true
+                  },
+                  {
+                    "id": "cknjcl4co000m3b64azr0z0vb",
+                    "type": "default",
+                    "x": 791,
+                    "y": 241.5,
+                    "name": "cknjcl4co000n3b64imro10ov",
+                    "parentNode": "13046aee-92a0-41d9-827f-e019ed0bf738",
+                    "links": [
+                      "fb84204f-b238-42f8-9a20-6255ae2f633f"
+                    ],
+                    "in": false,
+                    "groupName": "ZPL",
+                    "groupIndex": 0,
+                    "groupPath": "data.branches",
+                    "fieldLabel": null,
+                    "fieldPath": "nextNodes"
+                  },
+                  {
+                    "id": "cknjcl7p0000o3b64akb365y3",
+                    "type": "default",
+                    "x": 791,
+                    "y": 266.5,
+                    "name": "cknjcl7p0000p3b642bm7or88",
+                    "parentNode": "13046aee-92a0-41d9-827f-e019ed0bf738",
+                    "links": [
+                      "dc2d0e90-49f3-4e8d-a6cf-7f5d55915368"
+                    ],
+                    "in": false,
+                    "groupName": "PDF",
+                    "groupIndex": 1,
+                    "groupPath": "data.branches",
+                    "fieldLabel": null,
+                    "fieldPath": "nextNodes"
+                  },
+                  {
+                    "id": "cknjclyd0000u3b64nqo2nefy",
+                    "type": "default",
+                    "x": 791,
+                    "y": 291.5,
+                    "name": "cknjclyd0000v3b64og1creie",
+                    "parentNode": "13046aee-92a0-41d9-827f-e019ed0bf738",
+                    "links": [
+                      "104e7f00-80f8-4e2b-8a09-1204c57e2a09"
+                    ],
+                    "in": false,
+                    "groupName": "Else",
+                    "groupIndex": 2,
+                    "groupPath": "data.branches",
+                    "fieldLabel": null,
+                    "fieldPath": "nextNodes"
+                  }
+                ],
+                "data": {
+                  "branches": [
+                    {
+                      "name": "ZPL",
+                      "nextNodes": [
+                        "a63051b4-ee2d-4014-9ef1-5c683c3d3707"
+                      ],
+                      "transform": "label.format = 'ZPL' or label.format = 'ZPLII'\n"
+                    },
+                    {
+                      "name": "PDF",
+                      "nextNodes": [
+                        "1a6aeffc-06d2-48a5-b504-54cce65729d5"
+                      ],
+                      "transform": "label.format = 'PDF'\n"
+                    },
+                    {
+                      "name": "Else",
+                      "transform": "true",
+                      "nextNodes": [
+                        "8045c8a7-f3f7-4867-a1b5-cc2b22e43cc2"
+                      ]
+                    }
+                  ]
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Label Type"
+              },
+              "1a6aeffc-06d2-48a5-b504-54cce65729d5": {
+                "id": "1a6aeffc-06d2-48a5-b504-54cce65729d5",
+                "type": "devicePrintDocument",
+                "selected": false,
+                "x": 905,
+                "y": 235,
+                "ports": [
+                  {
+                    "id": "cknjcljkp000q3b6440xe5uhm",
+                    "type": "default",
+                    "x": 897,
+                    "y": 266.5,
+                    "name": "cknjcljkp000r3b64p7mis7xg",
+                    "parentNode": "1a6aeffc-06d2-48a5-b504-54cce65729d5",
+                    "links": [
+                      "dc2d0e90-49f3-4e8d-a6cf-7f5d55915368"
+                    ],
+                    "in": true
+                  },
+                  {
+                    "id": "cknjcljkp000s3b64b1zbm7he",
+                    "type": "default",
+                    "x": 1051,
+                    "y": 266.5,
+                    "name": "cknjcljkp000t3b6488yss4x6",
+                    "parentNode": "1a6aeffc-06d2-48a5-b504-54cce65729d5",
+                    "links": [
+                      "6e07c6e9-8bd9-4996-af91-05084cbf4c0c"
+                    ],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Output",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "nextNodes": [
+                    "99e3b28d-50c0-4af7-a10f-424e2e4e96b0"
+                  ],
+                  "filenameTransform": "trackingNumber & \".pdf\"",
+                  "dataTransform": "label.data",
+                  "deviceIdTransform": "\"cknjd7nvs00370j8r3btlgg6b\""
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Print Data"
+              },
+              "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5": {
+                "id": "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5",
+                "type": "setContext",
+                "selected": false,
+                "x": -110,
+                "y": 210,
+                "ports": [
+                  {
+                    "id": "cknjcqsm5001b3b64rp5bx5sx",
+                    "type": "default",
+                    "x": -118,
+                    "y": 241.5,
+                    "name": "cknjcqsm5001c3b64khd1u1g5",
+                    "parentNode": "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5",
+                    "links": [
+                      "6ba3256b-69e3-40ea-a3a7-a9f4ece18eff",
+                      "e80f7a8c-9767-41f6-9db8-07ed29f425b0"
+                    ],
+                    "in": true
+                  },
+                  {
+                    "id": "cknjcqsm5001d3b645r1u1rhi",
+                    "type": "default",
+                    "x": 36,
+                    "y": 241.5,
+                    "name": "cknjcqsm5001e3b64tagti73x",
+                    "parentNode": "9f54fbe9-7790-424e-8b7d-3c5c0048dbd5",
+                    "links": [
+                      "a5c2e002-db4e-4833-acf8-2fba79f9e5f2"
+                    ],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Output",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "nextNodes": [
+                    "21e058c7-683c-49e3-baef-41e25f1b1db5"
+                  ],
+                  "transform": "{\n  \"parameters\": $\n}"
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Set Context"
+              },
+              "4b783ec7-e4bc-43a1-908e-760a908037b5": {
+                "id": "4b783ec7-e4bc-43a1-908e-760a908037b5",
+                "type": "broadcast",
+                "selected": false,
+                "x": 455,
+                "y": 210,
+                "ports": [
+                  {
+                    "id": "cknjcvzx4002c3b64l3yboop7",
+                    "type": "default",
+                    "x": 447,
+                    "y": 241.5,
+                    "name": "cknjcvzx4002d3b64fbmedtzi",
+                    "parentNode": "4b783ec7-e4bc-43a1-908e-760a908037b5",
+                    "links": [
+                      "ee985386-e67f-403c-8e87-0a3b96175543"
+                    ],
+                    "in": true
+                  },
+                  {
+                    "id": "cknjcvzx4002e3b64xh86nwpf",
+                    "type": "default",
+                    "x": 601,
+                    "y": 241.5,
+                    "name": "cknjcvzx4002f3b64362dpgl4",
+                    "parentNode": "4b783ec7-e4bc-43a1-908e-760a908037b5",
+                    "links": [
+                      "0135cde9-bb88-47f3-92ad-fb5dc00035fb"
+                    ],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Output",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "nextNodes": [
+                    "13046aee-92a0-41d9-827f-e019ed0bf738"
+                  ]
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Broadcast"
+              },
+              "21e058c7-683c-49e3-baef-41e25f1b1db5": {
+                "id": "21e058c7-683c-49e3-baef-41e25f1b1db5",
+                "type": "transform",
+                "selected": false,
+                "x": 75,
+                "y": 210,
+                "ports": [
+                  {
+                    "id": "cknjcw8m7002g3b64ix28tea2",
+                    "type": "default",
+                    "x": 67,
+                    "y": 241.5,
+                    "name": "cknjcw8m7002h3b64wi6x584c",
+                    "parentNode": "21e058c7-683c-49e3-baef-41e25f1b1db5",
+                    "links": [
+                      "a5c2e002-db4e-4833-acf8-2fba79f9e5f2"
+                    ],
+                    "in": true
+                  },
+                  {
+                    "id": "cknjcw8m7002i3b645gczxq9s",
+                    "type": "default",
+                    "x": 221,
+                    "y": 241.5,
+                    "name": "cknjcw8m7002j3b64vq47q303",
+                    "parentNode": "21e058c7-683c-49e3-baef-41e25f1b1db5",
+                    "links": [
+                      "04781410-a098-4d8e-b66d-8f27acec5297"
+                    ],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Output",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "nextNodes": [
+                    "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807"
+                  ],
+                  "transform": "$state.context.parameters.shipment.packageLabels"
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Transform"
+              },
+              "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807": {
+                "id": "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807",
+                "type": "ifElse",
+                "selected": false,
+                "x": 270,
+                "y": 210,
+                "ports": [
+                  {
+                    "id": "cknjcwldj002k3b64wwxbozru",
+                    "type": "default",
+                    "x": 262,
+                    "y": 241.5,
+                    "name": "cknjcwldj002l3b64tblarasr",
+                    "parentNode": "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807",
+                    "links": [
+                      "04781410-a098-4d8e-b66d-8f27acec5297"
+                    ],
+                    "in": true
+                  },
+                  {
+                    "id": "cknjcwldj002m3b64dknlj1hs",
+                    "type": "default",
+                    "x": 415.98,
+                    "y": 241.5,
+                    "name": "cknjcwldj002n3b64qkpbal4y",
+                    "parentNode": "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807",
+                    "links": [
+                      "ee985386-e67f-403c-8e87-0a3b96175543"
+                    ],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "True",
+                    "fieldPath": "data.onTrueNextNodes"
+                  },
+                  {
+                    "id": "cknjcwldj002o3b6429uo17xo",
+                    "type": "default",
+                    "x": 415.98,
+                    "y": 266.5,
+                    "name": "cknjcwldj002p3b64u3liah3h",
+                    "parentNode": "5cc0aeb7-6304-47aa-8fa0-f86a7e4bc807",
+                    "links": [
+                      "5983efea-62a7-4859-8f00-6486d1c027dc"
+                    ],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "False",
+                    "fieldPath": "data.onFalseNextNodes"
+                  }
+                ],
+                "data": {
+                  "onTrueNextNodes": [
+                    "4b783ec7-e4bc-43a1-908e-760a908037b5"
+                  ],
+                  "onFalseNextNodes": [
+                    "339046fc-d4ea-4d21-a34e-edcabd9c784c"
+                  ],
+                  "transform": "$not($isNilOrEmpty($))"
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Has labels?"
+              },
+              "339046fc-d4ea-4d21-a34e-edcabd9c784c": {
+                "id": "339046fc-d4ea-4d21-a34e-edcabd9c784c",
+                "type": "response",
+                "selected": false,
+                "x": 450,
+                "y": 295,
+                "ports": [
+                  {
+                    "id": "cknjcwuup002y3b64wbdvrt5l",
+                    "type": "default",
+                    "x": 442,
+                    "y": 326.5,
+                    "name": "cknjcwuup002z3b6478id0p8o",
+                    "parentNode": "339046fc-d4ea-4d21-a34e-edcabd9c784c",
+                    "links": [
+                      "5983efea-62a7-4859-8f00-6486d1c027dc"
+                    ],
+                    "in": true,
+                    "fieldLabel": "Response"
+                  },
+                  {
+                    "id": "cknjcwuup00303b64ehg88mvg",
+                    "type": "default",
+                    "x": 595.98,
+                    "y": 326.5,
+                    "name": "cknjcwuup00313b64oiomvwcj",
+                    "parentNode": "339046fc-d4ea-4d21-a34e-edcabd9c784c",
+                    "links": [],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Output",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "responseTransform": "$throw(\"No package labels found for shipment \" & $shipment.number)",
+                  "nextNodes": []
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Throw No Labels"
+              },
+              "8045c8a7-f3f7-4867-a1b5-cc2b22e43cc2": {
+                "id": "8045c8a7-f3f7-4867-a1b5-cc2b22e43cc2",
+                "type": "response",
+                "selected": false,
+                "x": 905,
+                "y": 305,
+                "ports": [
+                  {
+                    "id": "cknjd9g94005s3b64mxemt77a",
+                    "type": "default",
+                    "x": 897,
+                    "y": 336.5,
+                    "name": "cknjd9g94005t3b64q4c2fta7",
+                    "parentNode": "8045c8a7-f3f7-4867-a1b5-cc2b22e43cc2",
+                    "links": [
+                      "104e7f00-80f8-4e2b-8a09-1204c57e2a09"
+                    ],
+                    "in": true,
+                    "fieldLabel": "Response"
+                  },
+                  {
+                    "id": "cknjd9g94005u3b640xbiols2",
+                    "type": "default",
+                    "x": 1050.98,
+                    "y": 336.5,
+                    "name": "cknjd9g95005v3b64r1ra75j1",
+                    "parentNode": "8045c8a7-f3f7-4867-a1b5-cc2b22e43cc2",
+                    "links": [],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Output",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "responseTransform": "$throw(\"Unsupported label format \" & label.format)",
+                  "nextNodes": []
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Throw No Labels"
+              },
+              "99e3b28d-50c0-4af7-a10f-424e2e4e96b0": {
+                "id": "99e3b28d-50c0-4af7-a10f-424e2e4e96b0",
+                "type": "combine",
+                "selected": false,
+                "x": 1155,
+                "y": 235,
+                "ports": [
+                  {
+                    "id": "cknjdl83z009y3b64nbx6cpd6",
+                    "type": "default",
+                    "x": 1147,
+                    "y": 266.5,
+                    "name": "cknjdl83z009z3b64edq2olh9",
+                    "parentNode": "99e3b28d-50c0-4af7-a10f-424e2e4e96b0",
+                    "links": [
+                      "d4aa8256-868b-4c05-aabe-26691fc344db",
+                      "6e07c6e9-8bd9-4996-af91-05084cbf4c0c"
+                    ],
+                    "in": true
+                  },
+                  {
+                    "id": "cknjdl83z00a03b6445afxjqi",
+                    "type": "default",
+                    "x": 1301,
+                    "y": 266.5,
+                    "name": "cknjdl83z00a13b644vxz4hqt",
+                    "parentNode": "99e3b28d-50c0-4af7-a10f-424e2e4e96b0",
+                    "links": [
+                      "ab25bddd-3f6c-4a29-8190-2ab61ab75d2c"
+                    ],
+                    "in": false,
+                    "groupIndex": null,
+                    "groupPath": null,
+                    "fieldLabel": "Output",
+                    "fieldPath": "data.nextNodes"
+                  }
+                ],
+                "data": {
+                  "executionTimeout": 30,
+                  "payloadCombinationStrategy": "index",
+                  "contextCombinationStrategy": "first",
+                  "nextNodes": [
+                    "a815d3af-7776-4d4e-89b4-6ce85f5fa0d6"
+                  ]
+                },
+                "debug": {
+                  "breakpointEnabled": false
+                },
+                "name": "Combine"
+              }
+            }
+          }
+        ],
+        "name": "Integrated Carrier Print Labels Standard",
+        "type": "Integration",
+        "version": "0.0.3",
+        "walkthrough": {}
+      }
+    }
+  ],
+  "description": "Create Latest Integrated Carrier Print Labels Standard Version (5/7)"
+}
