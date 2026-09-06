@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integrated Carrier Core Flows Package &mdash; Fuuz Accelerator</title>
+<meta name="description" content="Fuuz accelerator: Integrated carrier flows â€” router and label print flows for carrier-agnostic shipping">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://accelerators.fuuz.com/package-integrated-carrier-core-flows-accelerator/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://accelerators.fuuz.com/package-integrated-carrier-core-flows-accelerator/">
+<meta property="og:site_name" content="Fuuz Accelerators">
+<meta property="og:title" content="Integrated Carrier Core Flows Package &mdash; Fuuz Accelerator">
+<meta property="og:description" content="Fuuz accelerator: Integrated carrier flows â€” router and label print flows for carrier-agnostic shipping">
+<link rel="icon" href="assets/appicon-violet.svg">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="prose.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "Integrated Carrier Core Flows Package",
+  "url": "https://accelerators.fuuz.com/package-integrated-carrier-core-flows-accelerator/",
+  "description": "Fuuz accelerator: Integrated carrier flows \u00e2\u20ac\u201d router and label print flows for carrier-agnostic shipping",
+  "codeRepository": "https://github.com/Fuuz-Platform/package-integrated-carrier-core-flows-accelerator",
+  "applicationCategory": "BusinessApplication",
+  "runtimePlatform": "Fuuz",
+  "author": {
+    "@type": "Organization",
+    "name": "Fuuz",
+    "url": "https://fuuz.com"
+  }
+}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="logo" href="../"><img src="assets/logo-horizontal-on-midnight.svg" alt="Fuuz"></a>
+    <span class="section">Accelerators</span>
+    <nav><a href="#overview">Overview</a><a href="#package-contents">Package Contents</a><a href="#installed-flows-2-core-flows">Installed Flows (2 core flows)</a><a href="https://github.com/Fuuz-Platform/package-integrated-carrier-core-flows-accelerator">GitHub</a></nav>
+  </div>
+</header>
+<main>
+<div class="wrap hero">
+  <p class="eyebrow">Accelerator &middot; Integration package</p>
+  <h1>Integrated Carrier Core Flows <span class="accent">Package</span></h1>
+  <p class="lede">Fuuz accelerator: Integrated carrier flows â€” router and label print flows for carrier-agnostic shipping</p>
+  <div class="ctas">
+    <a class="cta cta-primary" href="https://github.com/Fuuz-Platform/package-integrated-carrier-core-flows-accelerator">Get the package</a>
+    <a class="cta cta-secondary" href="../">All accelerators</a>
+  </div>
+</div>
+<section>
+  <div class="wrap prose">
+<p><strong>Version:</strong> 0.0.1
+<strong>Spec Version:</strong> 2.0.0</p>
+<hr />
+<h2 id="overview">Overview</h2>
+<p>This package installs the core carrier-agnostic data flows for the Integrated Carrier shipping system. It provides the central routing logic that dispatches shipment requests to the correct carrier-specific handler, and the label print flow that interfaces with the Fuuz Device (printer) subsystem.</p>
+<p>These flows are designed to work with any carrier registered in the <code>IntegratedCarrier</code> schema. Adding a new carrier only requires creating the appropriate <code>IntegratedCarrierRequestFlow</code> seed records and implementing carrier-specific API flows — the router itself does not change.</p>
+<hr />
+<h2 id="package-contents">Package Contents</h2>
+<pre><code>integrated-carrier-core-flows/
+├── manifest.json
+├── package-data.json
+├── install/                     6 install steps
+├── preinstall/                  2 preinstall verification steps
+└── postinstall/                 2 postinstall configuration steps
+</code></pre>
+<hr />
+<h2 id="installed-flows-2-core-flows">Installed Flows (2 core flows)</h2>
+<h3>Integrated Carrier Router (<code>Integration</code>)</h3>
+<p>The central dispatch flow for all shipment operations. Receives a shipment request with carrier ID and request type, looks up the appropriate <code>IntegratedCarrierRequestFlow</code> record, and executes the matched carrier-specific flow (rate quote, label generation, void, tracking, etc.).</p>
+<p>Key behavior:
+- Queries <code>IntegratedCarrierRequestFlow</code> using <code>carrierId</code> + <code>requestTypeId</code> to find the handler flow ID
+- Calls <code>$executeFlow(handlerFlowId, payload)</code> — enabling a plug-in model where new carriers register their flows without modifying the router
+- Returns the carrier API response to the calling screen or flow
+- Logs the request and response to <code>IntegratedCarrierRequest</code> for audit and reprint</p>
+<h3>Integrated Carrier Print Labels Standard (<code>Integration</code>)</h3>
+<p>Handles standard label print operations after successful label generation:</p>
+<ul>
+<li>Receives the carrier label response (Base64 ZPL or PDF)</li>
+<li>Resolves the assigned printer device from the workcenter or shipment context</li>
+<li>Dispatches the label to the Fuuz Device print queue</li>
+<li>Supports thermal label printers (ZPL) and standard laser label formats (PDF)</li>
+</ul>
+<hr />
+<h2 id="install-process">Install Process</h2>
+<p><strong>Preinstall (2 steps):</strong> Verifies that neither <code>Integrated Carrier Router</code> nor <code>Integrated Carrier Print Labels Standard</code> flows already exist by ID and name, preventing duplicate installation.</p>
+<p><strong>Install (6 steps):</strong>
+1. Creates the <code>Integrated Carrier Router</code> DataFlow header (inactive)
+2. Creates and deploys the Router flow version
+3. Creates the <code>Integrated Carrier Print Labels Standard</code> DataFlow header (inactive)
+4. Creates and deploys the Print Labels flow version
+5. Activates the Router flow
+6. Activates the Print Labels flow</p>
+<p><strong>Postinstall (2 steps):</strong>
+1. Registers the Router flow ID into the <code>IntegratedCarrierConnectionConfiguration</code> records for each carrier account
+2. Validates that the flows are active and deployable</p>
+<hr />
+<h2 id="installation">Installation</h2>
+<ol>
+<li>Install <code>package-integrated-carrier-core-schema-accelerator</code> first</li>
+<li>Import this package via Fuuz Package Manager</li>
+<li>Verify both flows are active in the Fuuz Data Flow manager</li>
+<li>Install carrier-specific packages (FedEx, UPS) to register handler flows with the router</li>
+<li>Assign printers to workcenters via the Fuuz Device settings for label printing</li>
+</ol>
+<hr />
+<h2 id="dependencies">Dependencies</h2>
+<ul>
+<li><strong><code>package-integrated-carrier-core-schema-accelerator</code></strong> — required; must be installed first</li>
+<li><strong>Fuuz Device module</strong> — required for label printing</li>
+<li>Carrier-specific packages must be installed AFTER this package</li>
+</ul>
+<hr />
+<h2 id="part-of-the-integrated-carrier-suite">Part of the Integrated Carrier Suite</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>integrated-carrier-core-schema</code></td>
+<td>Data models</td>
+</tr>
+<tr>
+<td><strong>integrated-carrier-core-flows</strong> (this)</td>
+<td>Router and print flows</td>
+</tr>
+<tr>
+<td><code>integrated-carrier-core-screens</code></td>
+<td>Shipment management screens</td>
+</tr>
+<tr>
+<td><code>integrated-carrier-fedex</code></td>
+<td>FedEx seed data and label flows</td>
+</tr>
+<tr>
+<td><code>integrated-carrier-ups</code></td>
+<td>UPS seed data and label flows</td>
+</tr>
+<tr>
+<td><code>integrated-carrier-addon-plex</code></td>
+<td>Plex ERP integration extension</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<p><em>Built on the <a href="https://fuuz.com">Fuuz Industrial Operations Platform</a></em></p>
+  </div>
+</section>
+</main>
+<footer>
+  <div class="wrap">
+    <p>Fuuz&reg; is an Enterprise Industrial Intelligence Platform.
+      <a href="https://accelerators.fuuz.com/">All accelerators</a> &middot;
+      <a href="https://github.com/Fuuz-Platform/package-integrated-carrier-core-flows-accelerator">Source</a> &middot;
+      <a href="https://fuuz.com">fuuz.com</a></p>
+  </div>
+</footer>
+</body>
+</html>
